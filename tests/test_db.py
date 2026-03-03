@@ -2,8 +2,14 @@ from __future__ import annotations
 
 import pytest
 
-from db import ENSURE_EMPLOYEE_EMPID_UNIQUE_INDEX_SQL, UPSERT_EMPLOYEE_SQL
-from settings import ConfigurationError, DatabaseConfig
+from employee_management_system.config.settings import (
+    ConfigurationError,
+    DatabaseConfig,
+)
+from employee_management_system.storage.postgres_store import (
+    ENSURE_EMPLOYEE_EMPID_UNIQUE_INDEX_SQL,
+    UPSERT_EMPLOYEE_SQL,
+)
 
 
 def test_database_config_defaults(monkeypatch: pytest.MonkeyPatch) -> None:

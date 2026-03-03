@@ -8,12 +8,15 @@ import sys
 from collections.abc import Sequence
 from decimal import Decimal
 
-from db import DatabaseStoreError, PostgresEmployeeStore
-from employee_service import (
+from employee_management_system.services.employee_service import (
     EmployeeInput,
     EmployeeStore,
     build_employee,
     persist_employee,
+)
+from employee_management_system.storage.postgres_store import (
+    DatabaseStoreError,
+    PostgresEmployeeStore,
 )
 
 EXIT_SUCCESS = 0

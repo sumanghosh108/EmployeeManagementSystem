@@ -4,8 +4,8 @@ from decimal import Decimal
 
 import pytest
 
-from emp_management import Employee
-from employee_service import (
+from employee_management_system.domain.employee import Employee
+from employee_management_system.services.employee_service import (
     EmployeeInput,
     build_employee,
     parse_salary,

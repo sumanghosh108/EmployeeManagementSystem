@@ -23,13 +23,17 @@ dev = [
 ]
 
 [project.scripts]
-employee-cli = "app:main"
+employee-cli = "employee_management_system.cli.app:main"
 
 [tool.setuptools]
-py-modules = ["app", "db", "employee_service", "emp_management", "settings"]
+include-package-data = false
 
 [tool.setuptools.package-dir]
 "" = "src"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["employee_management_system*"]
 
 [tool.black]
 line-length = 88

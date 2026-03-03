@@ -8,7 +8,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-DEFAULT_ENV_FILE = Path(__file__).resolve().parents[1] / ".env"
+DEFAULT_ENV_FILE = Path(__file__).resolve().parents[3] / ".env"
 
 
 class ConfigurationError(ValueError):

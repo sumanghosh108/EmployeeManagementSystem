@@ -38,7 +38,7 @@ employee-cli --name one --id 1abc234 --type Senior --salary 30000 --available_le
 You can also run directly:
 
 ```bash
-python src/app.py --name one --id 1abc234 --type Senior --salary 30000 --available_leaves 12 --leaves_taken 2 --extra_hours 10 --worked_days 30
+python -m employee_management_system --name one --id 1abc234 --type Senior --salary 30000 --available_leaves 12 --leaves_taken 2 --extra_hours 10 --worked_days 30
 ```
 
 Skip persistence when needed:
@@ -80,11 +80,11 @@ On first successful write, table `employees` is created automatically.
 
 ## Code Structure
 
-- `src/app.py`: CLI argument parsing, logging, and summary output
-- `src/employee_service.py`: employee construction and persistence orchestration
-- `src/settings.py`: `.env` loading and database config parsing
-- `src/db.py`: PostgreSQL table creation and insert logic
-- `src/emp_management.py`: domain model and payroll/leave business rules
+- `src/employee_management_system/cli/app.py`: CLI argument parsing, logging, and summary output
+- `src/employee_management_system/services/employee_service.py`: employee construction and persistence orchestration
+- `src/employee_management_system/config/settings.py`: `.env` loading and database config parsing
+- `src/employee_management_system/storage/postgres_store.py`: PostgreSQL table creation and insert/upsert logic
+- `src/employee_management_system/domain/employee.py`: domain model and payroll/leave business rules
 
 ## Validation Rules
 
@@ -127,8 +127,10 @@ black --check .
 mypy src
 pytest -q
 ```
-## Current flow is:
-CLI (app.py) -> employee_service.py -> Employee (emp_management.py) -> db.py.
+
+## Current Flow
+
+CLI (`cli/app.py`) -> service (`services/employee_service.py`) -> domain (`domain/employee.py`) -> storage (`storage/postgres_store.py`)
 
 ## CI
 

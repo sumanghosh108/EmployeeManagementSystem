@@ -1,8 +1,13 @@
 from __future__ import annotations
 
-from app import EXIT_DATABASE_ERROR, EXIT_SUCCESS, EXIT_VALIDATION_ERROR, main
-from db import DatabaseStoreError
-from emp_management import Employee
+from employee_management_system.cli.app import (
+    EXIT_DATABASE_ERROR,
+    EXIT_SUCCESS,
+    EXIT_VALIDATION_ERROR,
+    main,
+)
+from employee_management_system.domain.employee import Employee
+from employee_management_system.storage.postgres_store import DatabaseStoreError
 
 
 class FakeStore:

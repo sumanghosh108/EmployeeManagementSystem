@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from typing import Protocol
 
-from emp_management import Employee
+from employee_management_system.domain.employee import Employee
 
 
 class EmployeeStore(Protocol):

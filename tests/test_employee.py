@@ -4,7 +4,7 @@ from decimal import Decimal
 
 import pytest
 
-from emp_management import Employee
+from employee_management_system.domain.employee import Employee
 
 
 def build_employee(**overrides: object) -> Employee:

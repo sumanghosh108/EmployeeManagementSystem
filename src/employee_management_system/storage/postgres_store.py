@@ -8,8 +8,11 @@ from typing import Any
 import psycopg
 from psycopg import Connection
 
-from emp_management import Employee
-from settings import ConfigurationError, DatabaseConfig
+from employee_management_system.config.settings import (
+    ConfigurationError,
+    DatabaseConfig,
+)
+from employee_management_system.domain.employee import Employee
 
 CREATE_EMPLOYEES_TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS employees (
