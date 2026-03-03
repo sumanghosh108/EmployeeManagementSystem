@@ -47,6 +47,58 @@ Skip persistence when needed:
 employee-cli --name one --id 1abc234 --type Senior --salary 30000 --available_leaves 12 --leaves_taken 2 --extra_hours 10 --worked_days 30 --no-store
 ```
 
+## FastAPI Usage
+
+Run API server:
+
+```bash
+employee-api
+```
+
+or
+
+```bash
+uvicorn employee_management_system.api.main:app --reload
+```
+
+API docs:
+
+- `http://127.0.0.1:8000/docs`
+
+Example preview request:
+
+```bash
+curl -X POST "http://127.0.0.1:8000/api/v1/employees/preview" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "one",
+    "empid": "1abc234",
+    "emptype": "Senior",
+    "salary": "30000",
+    "available_leaves": 12,
+    "leaves_taken": 2,
+    "extra_hours": 10,
+    "worked_days": 30
+  }'
+```
+
+Example create/upsert request:
+
+```bash
+curl -X POST "http://127.0.0.1:8000/api/v1/employees" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "one",
+    "empid": "1abc234",
+    "emptype": "Senior",
+    "salary": "30000",
+    "available_leaves": 12,
+    "leaves_taken": 2,
+    "extra_hours": 10,
+    "worked_days": 30
+  }'
+```
+
 ## PostgreSQL Setup (Local)
 
 1. Create a local database named `employee_management`.
@@ -81,6 +133,7 @@ On first successful write, table `employees` is created automatically.
 ## Code Structure
 
 - `src/employee_management_system/cli/app.py`: CLI argument parsing, logging, and summary output
+- `src/employee_management_system/api/`: FastAPI app, routes, request/response schemas
 - `src/employee_management_system/services/employee_service.py`: employee construction and persistence orchestration
 - `src/employee_management_system/config/settings.py`: `.env` loading and database config parsing
 - `src/employee_management_system/storage/postgres_store.py`: PostgreSQL table creation and insert/upsert logic
@@ -131,6 +184,7 @@ pytest -q
 ## Current Flow
 
 CLI (`cli/app.py`) -> service (`services/employee_service.py`) -> domain (`domain/employee.py`) -> storage (`storage/postgres_store.py`)
+API (`api/routes.py`) -> service (`services/employee_service.py`) -> domain (`domain/employee.py`) -> storage (`storage/postgres_store.py`)
 
 ## CI
 
