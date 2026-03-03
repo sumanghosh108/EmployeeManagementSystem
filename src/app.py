@@ -6,12 +6,19 @@ import argparse
 import logging
 import sys
 from collections.abc import Sequence
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 
-from emp_management import Employee
+from db import DatabaseStoreError, PostgresEmployeeStore
+from employee_service import (
+    EmployeeInput,
+    EmployeeStore,
+    build_employee,
+    persist_employee,
+)
 
 EXIT_SUCCESS = 0
 EXIT_VALIDATION_ERROR = 1
+EXIT_DATABASE_ERROR = 2
 EXIT_UNEXPECTED_ERROR = 99
 
 
@@ -68,13 +75,6 @@ def format_money(value: Decimal) -> str:
     return as_text.rstrip("0").rstrip(".")
 
 
-def parse_salary(value: str) -> Decimal:
-    try:
-        return Decimal(value)
-    except (InvalidOperation, ValueError) as exc:
-        raise ValueError("salary must be a valid number") from exc
-
-
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Employee Management CLI")
     parser.add_argument("--name", required=True)
@@ -89,25 +89,34 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--leaves_taken", type=int, required=True)
     parser.add_argument("--extra_hours", type=int, required=True)
     parser.add_argument("--worked_days", type=int, required=True)
+    parser.add_argument(
+        "--no-store",
+        action="store_true",
+        help="Skip storing employee data in PostgreSQL.",
+    )
     return parser
 
 
-def main(argv: Sequence[str] | None = None) -> int:
+def main(
+    argv: Sequence[str] | None = None,
+    store: EmployeeStore | None = None,
+) -> int:
     logger = configure_logging()
     parser = build_parser()
     args = parser.parse_args(argv)
 
     try:
-        salary = parse_salary(args.salary)
-        employee = Employee(
-            empname=args.name,
-            empid=args.id,
-            emptype=args.type,
-            salary=salary,
-            available_leaves=args.available_leaves,
-            leaves_taken=args.leaves_taken,
-            extra_hrs_worked=args.extra_hours,
-            worked_days=args.worked_days,
+        employee = build_employee(
+            EmployeeInput(
+                name=args.name,
+                empid=args.id,
+                emptype=args.type,
+                salary=args.salary,
+                available_leaves=args.available_leaves,
+                leaves_taken=args.leaves_taken,
+                extra_hours=args.extra_hours,
+                worked_days=args.worked_days,
+            )
         )
     except ValueError as exc:
         logger.error(str(exc))
@@ -115,6 +124,15 @@ def main(argv: Sequence[str] | None = None) -> int:
     except Exception as exc:  # pragma: no cover
         logger.error("Unexpected error: %s", str(exc))
         return EXIT_UNEXPECTED_ERROR
+
+    record_id: int | None = None
+    if not args.no_store:
+        try:
+            active_store = store or PostgresEmployeeStore()
+            record_id = persist_employee(employee, active_store, enable_storage=True)
+        except DatabaseStoreError as exc:
+            logger.error(str(exc))
+            return EXIT_DATABASE_ERROR
 
     currency = get_currency_prefix()
     logger.info("")
@@ -124,6 +142,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     logger.info("Eligible for Leave: %s", employee.isEligible())
     logger.info("Extra Pay: %s%s", currency, format_money(employee.ExtraPay()))
     logger.info("Total Salary: %s%s", currency, format_money(employee.getTotalPay()))
+    if record_id is not None:
+        logger.info("Stored Record ID: %s", record_id)
     logger.info("=============================")
     logger.info("")
     return EXIT_SUCCESS

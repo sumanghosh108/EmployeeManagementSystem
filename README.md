@@ -4,6 +4,7 @@ A small CLI application that models employee leave eligibility and payroll rules
 
 - strict input validation
 - Decimal-based money calculations
+- local PostgreSQL persistence for employee records
 - structured CLI logging and exit codes
 - automated tests, linting, typing, and CI
 
@@ -26,7 +27,9 @@ pip install -e .[dev]
 
 ## CLI Usage
 
-After installation, run the console script:
+By default, each run stores employee data in PostgreSQL.
+
+Run the console script:
 
 ```bash
 employee-cli --name one --id 1abc234 --type Senior --salary 30000 --available_leaves 12 --leaves_taken 2 --extra_hours 10 --worked_days 30
@@ -37,6 +40,51 @@ You can also run directly:
 ```bash
 python src/app.py --name one --id 1abc234 --type Senior --salary 30000 --available_leaves 12 --leaves_taken 2 --extra_hours 10 --worked_days 30
 ```
+
+Skip persistence when needed:
+
+```bash
+employee-cli --name one --id 1abc234 --type Senior --salary 30000 --available_leaves 12 --leaves_taken 2 --extra_hours 10 --worked_days 30 --no-store
+```
+
+## PostgreSQL Setup (Local)
+
+1. Create a local database named `employee_management`.
+2. Create a `.env` file in the project root:
+
+```env
+EMP_DB_HOST=localhost
+EMP_DB_PORT=5432
+EMP_DB_NAME=employee_management
+EMP_DB_USER=postgres
+EMP_DB_PASSWORD=postgres
+EMP_DB_CONNECT_TIMEOUT=5
+# EMP_DB_DSN=postgresql://postgres:postgres@localhost:5432/employee_management
+```
+
+You can copy from `.env.example`. `.env` is auto-loaded by the app.
+
+3. Optional: set values directly in shell (overrides `.env`):
+
+```cmd
+set EMP_DB_HOST=localhost
+set EMP_DB_PORT=5432
+set EMP_DB_NAME=employee_management
+set EMP_DB_USER=postgres
+set EMP_DB_PASSWORD=postgres
+set EMP_DB_CONNECT_TIMEOUT=5
+```
+
+On first successful write, table `employees` is created automatically.
+`empid` is enforced as unique, and writes use upsert semantics (same `empid` updates existing row).
+
+## Code Structure
+
+- `src/app.py`: CLI argument parsing, logging, and summary output
+- `src/employee_service.py`: employee construction and persistence orchestration
+- `src/settings.py`: `.env` loading and database config parsing
+- `src/db.py`: PostgreSQL table creation and insert logic
+- `src/emp_management.py`: domain model and payroll/leave business rules
 
 ## Validation Rules
 
@@ -63,6 +111,14 @@ python src/app.py --name one --id 1abc234 --type Senior --salary 30000 --availab
 - Total pay:
   - `salary - (leaves_taken * deduction_rate) + extra_pay`
 
+## Stored Columns
+
+Each run inserts one row into `employees` with:
+
+- input fields (`empid`, `empname`, `emptype`, `available_leaves`, `worked_days`, `extra_hrs_worked`, `leaves_taken`, `salary`)
+- computed fields (`extra_pay`, `total_pay`, `is_eligible`)
+- timestamp (`created_at`)
+
 ## Development Commands
 
 ```bash
@@ -71,6 +127,8 @@ black --check .
 mypy src
 pytest -q
 ```
+## Current flow is:
+CLI (app.py) -> employee_service.py -> Employee (emp_management.py) -> db.py.
 
 ## CI
 
